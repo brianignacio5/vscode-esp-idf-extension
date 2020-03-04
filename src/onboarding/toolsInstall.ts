@@ -103,7 +103,7 @@ export async function downloadToolsInIdfToolsPath(
         OutputChannel.appendLine(reason);
         Logger.info(reason);
       });
-      let exportPaths = await idfToolsManager.exportPaths(
+      let exportPaths = await idfToolsManager.generateToolsExtraPaths(
         path.join(installDir, "tools")
       );
       const pythonSystemBinPath = idfConf.readParameter(
