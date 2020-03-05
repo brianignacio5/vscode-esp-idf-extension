@@ -62,6 +62,12 @@
             class="enter-button"
             >START</router-link
           >
+          <router-link 
+            v-on:click.native="initSetup"
+            to='/previous'
+            class="enter-button"
+            >Use previous settings
+          </router-link>
         </div>
       </div>
     </div>

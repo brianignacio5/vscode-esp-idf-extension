@@ -23,6 +23,7 @@ import * as url from "url";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
+import { IMetadataFile } from "./ITool";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 
@@ -612,5 +613,19 @@ export async function isBinInPath(binaryName: string, workDirectory: string) {
         Logger.error(`Cannot access filePath: ${binaryName}`, err);
       }
       return "";
+    });
+}
+
+export async function loadMetadata() {
+    const metadataFile = path.join(extensionContext.extensionPath, "metadata.json");
+    return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
+        if (doesMetadataExist) {
+            return await readJson(metadataFile).then((metadata: IMetadataFile) => {
+                return metadata;
+            });
+        } else {
+            Logger.info(`${metadataFile} doesn't exist.`);
+            return;
+        }
     });
 }
