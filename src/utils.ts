@@ -23,9 +23,12 @@ import * as url from "url";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
-import { IMetadataFile } from "./ITool";
+import { IdfToolsManager } from "./idfToolsManager";
+import { IMetadataFile, ITool } from "./ITool";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { OutputChannel } from "./logger/outputChannel";
+import { PlatformInformation } from "./PlatformInformation";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -197,14 +200,16 @@ export function readFileSync(filePath) {
 }
 
 export function doesPathExists(inputPath: string) {
-    return pathExists(inputPath);
+  return pathExists(inputPath);
 }
 export function readJson(jsonPath: string) {
-    return readJSON(jsonPath);
+  return readJSON(jsonPath);
 }
 
 export function writeJson(jsonPath: string, object: any) {
-    return writeJSON(jsonPath, object, { spaces: vscode.workspace.getConfiguration().get("editor.tabSize") });
+  return writeJSON(jsonPath, object, {
+    spaces: vscode.workspace.getConfiguration().get("editor.tabSize"),
+  });
 }
 
 export function readComponentsDirs(filePath): IdfComponent[] {
@@ -304,18 +309,23 @@ export function execChildProcess(
           Logger.error(stderr, new Error(stderr));
           if (stderr.indexOf("Licensed under GNU GPL v2") !== -1) {
             resolve(stderr);
+            return;
           }
           if (stderr.indexOf("DEPRECATION") !== -1) {
             resolve(stdout.concat(stderr));
+            return;
           }
           if (stderr.indexOf("WARNING") !== -1) {
             resolve(stdout.concat(stderr));
+            return;
           }
           if (stderr.indexOf("Cache entry deserialization failed") !== -1) {
             resolve(stdout.concat(stderr));
+            return;
           }
           if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {
             resolve(stdout.concat(stderr));
+            return;
           }
           reject(new Error(stderr));
           return;
@@ -617,15 +627,71 @@ export async function isBinInPath(binaryName: string, workDirectory: string) {
 }
 
 export async function loadMetadata() {
-    const metadataFile = path.join(extensionContext.extensionPath, "metadata.json");
-    return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
-        if (doesMetadataExist) {
-            return await readJson(metadataFile).then((metadata: IMetadataFile) => {
-                return metadata;
-            });
-        } else {
-            Logger.info(`${metadataFile} doesn't exist.`);
-            return;
+  const metadataFile = path.join(
+    extensionContext.extensionPath,
+    "metadata.json"
+  );
+  return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
+    if (doesMetadataExist) {
+      return await readJson(metadataFile).then((metadata: IMetadataFile) => {
+        return metadata;
+      });
+    } else {
+      Logger.info(`${metadataFile} doesn't exist.`);
+      return;
+    }
+  });
+}
+
+export async function startPythonReqsProcess(
+  pythonBinPath: string,
+  espIdfPath: string,
+  requirementsPath: string
+) {
+  const reqFilePath = path.join(
+    espIdfPath,
+    "tools",
+    "check_python_dependencies.py"
+  );
+  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
+  return execChildProcess(
+    `${pythonBinPath} ${reqFilePath} -r ${requirementsPath}`,
+    extensionContext.extensionPath,
+    OutputChannel.init()
+  );
+}
+
+export async function validateToolsFromMetadata(
+  selectedIdfPath: string,
+  toolsMeta: ITool[]
+) {
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  const toolsJsonPath = await getToolsJsonPath(selectedIdfPath);
+  const resultDict = {};
+  return await readJSON(toolsJsonPath).then(async (toolsObj) => {
+    const idfToolsManager = new IdfToolsManager(
+      toolsObj,
+      platformInfo,
+      OutputChannel.init()
+    );
+    return await idfToolsManager.getPackageList().then(async (pkgs) => {
+      const promises = pkgs.map((pkg) => {
+        const pathToVerify = toolsMeta.find((tool) => tool.name === pkg.name);
+        if (pathToVerify) {
+          return idfToolsManager.checkBinariesVersion(pkg, pathToVerify.path);
         }
+      });
+      await Promise.all(promises).then((versionExistsArr) => {
+        // tslint:disable-next-line: no-console
+        console.log(versionExistsArr);
+        pkgs.forEach((pkg, index) => {
+          resultDict[pkg.name] =
+            pkg.versions.findIndex(
+              (ver) => ver.name === versionExistsArr[index]
+            ) > -1;
+        });
+      });
+      return resultDict;
     });
+  });
 }

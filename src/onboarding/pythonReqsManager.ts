@@ -55,11 +55,6 @@ export async function checkPythonRequirements(
     "idf.toolsPath",
     selectedWorkspaceFolder
   ) as string;
-  const reqFilePath = path.join(
-    espIdfPath,
-    "tools",
-    "check_python_dependencies.py"
-  );
   const requirements = path.join(espIdfPath, "requirements.txt");
   const debugAdapterRequirements = path.join(
     utils.extensionContext.extensionPath,
@@ -71,27 +66,19 @@ export async function checkPythonRequirements(
     idfToolsPath,
     pythonBinPath
   );
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   await utils
-    .execChildProcess(
-      `${pythonBin} ${reqFilePath} -r ${requirements}`,
-      workingDir,
-      OutputChannel.init()
-    )
+    .startPythonReqsProcess(pythonBin, espIdfPath, requirements)
     .then(async (pyReqLog) => {
-      const resultLog = `Checking ESP-IDF Python requirements using ${pythonBin}\n${pyReqLog}`;
+      const resultLog = `Checking Python requirements using ${pythonBinPath}\n${pyReqLog}`;
       OutputChannel.appendLine(resultLog);
       Logger.info(resultLog);
       OnBoardingPanel.postMessage({
         command: "response_py_req_check",
         py_req_log: resultLog,
       });
+
       await utils
-        .execChildProcess(
-          `${pythonBin} ${reqFilePath} -r ${debugAdapterRequirements}`,
-          workingDir,
-          OutputChannel.init()
-        )
+        .startPythonReqsProcess(pythonBin, espIdfPath, debugAdapterRequirements)
         .then((adapterReqLog) => {
           const adapterResultLog = `Checking Debug Adapter requirements using ${pythonBin}\n${adapterReqLog}`;
           OutputChannel.appendLine(adapterResultLog);
