@@ -237,8 +237,6 @@ window.addEventListener("message", (event) => {
       break;
     case "load_selected_idf_version_metadata":
       if (message.selectedEspIdfVersionMetadata) {
-        // tslint:disable-next-line: no-console
-        console.log(message.selectedEspIdfVersionMetadata);
         store.commit(
           "setSelectedEspIdfVersionMetadata",
           message.selectedEspIdfVersionMetadata

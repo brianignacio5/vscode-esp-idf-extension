@@ -57,7 +57,9 @@ export class ConfserverProcess {
   }
 
   public static resetSavedByUI() {
-    ConfserverProcess.instance.isSavingSdkconfig = false;
+    if (ConfserverProcess.instance) {
+      ConfserverProcess.instance.isSavingSdkconfig = false;
+    }
   }
 
   public static loadExistingInstance() {

@@ -62,12 +62,18 @@
             class="enter-button"
             >START</router-link
           >
-          <router-link 
-            v-on:click.native="initSetup"
-            to='/previous'
-            class="enter-button"
-            >Use previous settings
-          </router-link>
+          <div
+            v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0"
+          >
+            <br>
+            <router-link
+              v-on:click.native="initSetup"
+              to='/previous'
+              class="enter-button"
+            >
+              Use previous settings
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -83,6 +89,7 @@
 import Vue from "vue";
 import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
+import { IPath } from "../../ITool";
 
 @Component
 export default class App extends Vue {
@@ -95,11 +102,16 @@ export default class App extends Vue {
   @Mutation("updateConfTarget") private modifyConfTarget;
   @Mutation private setSelectedWorkspaceFolder;
   @Action private updateConfTarget;
+  @State("idfVersionsMetadata") private storeIdfVersionsMetadata: IPath[];
   @Action private updateShowOnboardingOnInit;
   @Action private requestInitValues;
 
   public initSetup() {
     this.isNotWelcomePage = true;
+  }
+
+  get idfVersionsMetadata() {
+    return this.storeIdfVersionsMetadata;
   }
 
   get isNotWinPlatform() {

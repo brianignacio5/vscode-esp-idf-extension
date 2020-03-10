@@ -474,16 +474,32 @@ export async function activate(context: vscode.ExtensionContext) {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs"
       );
-
       const openOCDConfig: IOpenOCDConfig = {
         openOcdConfigFilesList,
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
-    } else if (e.affectsConfiguration("idf.adapterTargetName")) {
+    }
+    if (e.affectsConfiguration("idf.adapterTargetName")) {
       const debugAdapterConfig = {
         target: idfConf.readParameter("idf.adapterTargetName"),
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
+    }
+    if (
+      e.affectsConfiguration("idf.espIdfPath") &&
+      typeof OnBoardingPanel.currentPanel === "undefined"
+    ) {
+      const idfPathHasChangedMsg = locDic.localize(
+        "extension.idfPathHasChangedMsg",
+        "ESP-IDF Path configuration has changed. Do you want to update ESP-IDF Tools?"
+      );
+      vscode.window
+        .showInformationMessage(idfPathHasChangedMsg, "Yes", "No")
+        .then((selectedOption) => {
+          if (selectedOption === "Yes") {
+            vscode.commands.executeCommand("onboarding.start");
+          }
+        });
     }
   });
 
@@ -910,6 +926,10 @@ const build = () => {
         });
         idfBuildChannel.clear();
         try {
+          const checkToolsAreValid = await utils.validateCurrentExtraPaths();
+          if (!checkToolsAreValid) {
+            return;
+          }
           await buildManager.build();
           const projDescPath = path.join(
             workspaceRoot.fsPath,
@@ -1134,6 +1154,10 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         idfFlashChannel.clear();
         try {
           progress.report({ message: "Building project...", increment: 20 });
+          const checkToolsAreValid = await utils.validateCurrentExtraPaths();
+          if (!checkToolsAreValid) {
+            return;
+          }
           await buildManager.build();
           const projDescPath = path.join(
             workspaceRoot.fsPath,
