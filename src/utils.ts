@@ -79,7 +79,7 @@ export class PreCheck {
 export function spawn(
   command: string,
   args: string[] = [],
-  options: any = {}
+  options: childProcess.SpawnOptions = {}
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
@@ -612,9 +612,13 @@ export function appendIdfAndToolsToPath() {
   return modifiedEnv;
 }
 
-export async function isBinInPath(binaryName: string, workDirectory: string) {
+export async function isBinInPath(
+  binaryName: string,
+  workDirectory: string,
+  env: NodeJS.ProcessEnv
+) {
   const cmd = process.platform === "win32" ? "where" : "which";
-  return await spawn(cmd, [binaryName], { workDirectory })
+  return await spawn(cmd, [binaryName], { cwd: workDirectory, env })
     .then((result) => {
       if (
         result.toString() === "" ||
@@ -661,11 +665,13 @@ export async function startPythonReqsProcess(
     "tools",
     "check_python_dependencies.py"
   );
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
+  const modifiedEnv = process.env;
+  modifiedEnv.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   return execChildProcess(
     `${pythonBinPath} ${reqFilePath} -r ${requirementsPath}`,
     extensionContext.extensionPath,
-    OutputChannel.init()
+    OutputChannel.init(),
+    { env: modifiedEnv }
   );
 }
 

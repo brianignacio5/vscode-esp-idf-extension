@@ -148,14 +148,18 @@ export class ConfserverProcess {
     const guiconfigEspPath =
       idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-    appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath();
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    const getSdkconfigProcess = spawn(pythonBinPath, [
-      idfPyPath,
-      "-C",
-      ConfserverProcess.instance.workspaceFolder.fsPath,
-      "reconfigure",
-    ]);
+    const getSdkconfigProcess = spawn(
+      pythonBinPath,
+      [
+        idfPyPath,
+        "-C",
+        ConfserverProcess.instance.workspaceFolder.fsPath,
+        "reconfigure",
+      ],
+      { env: modifiedEnv }
+    );
 
     progress.report({ increment: 10, message: "Loading default values..." });
 
@@ -244,13 +248,12 @@ export class ConfserverProcess {
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
-    appendIdfAndToolsToPath();
-    this.confServerProcess = spawn(pythonBinPath, [
-      idfPath,
-      "-C",
-      workspaceFolder.fsPath,
-      "confserver",
-    ]);
+    const modifiedEnv = appendIdfAndToolsToPath();
+    this.confServerProcess = spawn(
+      pythonBinPath,
+      [idfPath, "-C", workspaceFolder.fsPath, "confserver"],
+      { env: modifiedEnv }
+    );
     ConfserverProcess.progress.report({
       increment: 30,
       message: "Configuring server",

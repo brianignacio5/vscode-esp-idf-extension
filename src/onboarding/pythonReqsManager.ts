@@ -29,16 +29,10 @@ export async function checkPythonRequirements(
   workingDir: string,
   selectedWorkspaceFolder: WorkspaceFolder
 ) {
-  const pythonSystemBinPath = idfConf.readParameter(
-    "idf.pythonSystemBinPath",
-    selectedWorkspaceFolder
-  ) as string;
   const pythonBinPath = idfConf.readParameter(
     "idf.pythonBinPath",
     selectedWorkspaceFolder
   ) as string;
-  process.env.PATH =
-    path.dirname(pythonSystemBinPath) + path.delimiter + process.env.PATH;
   const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
   if (!canCheck) {
     OnBoardingPanel.postMessage({
@@ -120,8 +114,6 @@ export async function installPythonRequirements(
     "idf.pythonSystemBinPath",
     selectedWorkspaceFolder
   ) as string;
-  process.env.PATH =
-    path.dirname(pythonBinPath) + path.delimiter + process.env.PATH;
   const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
   if (!canCheck) {
     sendPyReqLog("Python or pip have not been found in your environment.");
@@ -139,7 +131,6 @@ export async function installPythonRequirements(
     selectedWorkspaceFolder
   ) as string;
   const logTracker = new PyReqLog(sendPyReqLog);
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   return await pythonManager
     .installPythonEnv(
       espIdfPath,
