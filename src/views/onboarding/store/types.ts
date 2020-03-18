@@ -62,6 +62,7 @@ export interface IState {
   isPyInstallCompleted: boolean;
   isToolsCheckCompleted: boolean;
   pathDelimiter: string;
+  previousIdfVersion: string;
   previousIsValid: boolean;
   pyBinPath: string;
   pyLog: string;
