@@ -10,7 +10,7 @@ For this extension you also need [Python](https://www.python.org/download) and [
 
 ## How to configure correctly this extension
 
-1. Press **START** on the onboarding window and check that git is installed. Also select the Python executable to use in this extension. The python executable is saved in **idf.pythonSystemBinPath** or **idf.pythonSystemBinPathWin** for Windows users.
+1. Press **START** on the onboarding window and check that git is installed. Also select the Python executable to use in this extension. The python executable is persisted for the current onboarding session to create a python virtual environment in step 3, sub-item 1.
 
 2. Go to **Configure ESP-IDF** to download ESP-IDF or select an existing ESP-IDF folder in your system. In this window you can select the version you wish to download and the path to install it or you can select ESP-IDF directory, which will be validated. This path is saved as `idf.espIdfPath` which is used to replace system environment variable `IDF_PATH` (inside Visual Studio Code only) before running extension commands.
 
@@ -51,7 +51,5 @@ Here is diagram to configure ESP-IDF extension:
 ![Onboarding](../media/onboarding.png)
 
 ## Notes
-
-Consider that installing ESP-IDF Python Requirements (In Step 2) will fail if your `idf.pythonSystemBinPath` is set to a Python virtual environment executable.
 
 If you try to download ESP-IDF in a directory where a folder esp-idf already exists an error will be shown. Please delete this esp-idf folder or choose another destination directory.

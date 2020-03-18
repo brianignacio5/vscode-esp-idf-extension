@@ -107,9 +107,10 @@
         <i class="arrow go-back right" v-on:click="reset"></i>
         <h4>Verify ESP-IDF Tools</h4>
         <div v-if="!isToolsCheckCompleted">
-          <p>
-            Please specify the directories containing executable binaries for
-            required ESP-IDF Tools: <span class="bold"> |</span>
+          <p>Please check your python binary path (virtual environment or system wide)</p>
+          <input type="text" class="text-size" v-model="pyBinPath">
+          <p>Please specify the directories containing executable binaries for required ESP-IDF Tools: <br>
+            <span class="bold"> |</span>
             <span
               v-for="toolVersion in requiredToolsVersions"
               :key="toolVersion.id"
@@ -210,6 +211,7 @@ export default class ToolsSetup extends Vue {
   @State("showIdfToolsChecks") private storeShowIdfToolsChecks;
   @State("toolsCheckResults") private storeToolsCheckResults;
   @State("pathDelimiter") private storePathDelimiter;
+  @State("pyBinPath") private storePyBinPath;
   @State("requiredToolsVersions") private storeRequiredToolsVersions;
   @State("isInstallationCompleted") private storeIsInstallationCompleted;
   @State("isPyInstallCompleted") private storeisPyInstallCompleted: string;
@@ -219,6 +221,7 @@ export default class ToolsSetup extends Vue {
   @Mutation private setCustomExtraPaths;
   @Mutation private setEnvVars;
   @Mutation private setIdfToolsPath;
+  @Mutation private setPythonBinPath;
   @Mutation private setPySetupFinish;
   @Mutation private setShowIdfToolsChecks;
   @Mutation private setToolSetupMode;
@@ -264,6 +267,12 @@ export default class ToolsSetup extends Vue {
   }
   get pathDelimiter() {
     return this.storePathDelimiter;
+  }
+  get pyBinPath() {
+    return this.storePyBinPath;
+  }
+  set pyBinPath(newPath) {
+    this.setPythonBinPath(newPath);
   }
   get pyLog() {
     return this.storePyLog;

@@ -35,7 +35,8 @@ export async function downloadToolsInIdfToolsPath(
   idfToolsManager: IdfToolsManager,
   installDir: string,
   confTarget: vscode.ConfigurationTarget,
-  selectedWorkspaceFolder: vscode.WorkspaceFolder
+  selectedWorkspaceFolder: vscode.WorkspaceFolder,
+  systemPythonPath: string
 ) {
   // In case IDF tools path is of the form path1:path2, tell the user for single path
   const manyPathsInIdfTools = installDir.split(path.delimiter);
@@ -98,7 +99,8 @@ export async function downloadToolsInIdfToolsPath(
       const pyEnvResult = await installPythonRequirements(
         workingDir,
         confTarget,
-        selectedWorkspaceFolder
+        selectedWorkspaceFolder,
+        systemPythonPath
       ).catch((reason) => {
         OutputChannel.appendLine(reason);
         Logger.info(reason);
@@ -106,10 +108,6 @@ export async function downloadToolsInIdfToolsPath(
       let exportPaths = await idfToolsManager.generateToolsExtraPaths(
         path.join(installDir, "tools")
       );
-      const pythonSystemBinPath = idfConf.readParameter(
-        "idf.pythonSystemBinPath",
-        selectedWorkspaceFolder
-      ) as string;
       const pythonBinPath =
         pyEnvResult ||
         (idfConf.readParameter(
@@ -120,7 +118,7 @@ export async function downloadToolsInIdfToolsPath(
       exportPaths =
         path.dirname(pythonBinPath) +
         path.delimiter +
-        path.dirname(pythonSystemBinPath) +
+        path.dirname(systemPythonPath) +
         path.delimiter +
         exportPaths;
       const exportVars = await idfToolsManager.exportVars(

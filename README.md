@@ -117,7 +117,7 @@ Initial configuration is done easily by executing **ESP-IDF: Configure ESP-IDF e
 
 This windows helps you setup key Visual Studio Code configurations for this extension to perform included features correctly. This is how the extension uses them:
 
-1. `idf.pythonBinPath` is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF extension** we first select a `idf.pythonSystemBinPath` from which we create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF extension**
+1. `idf.pythonBinPath` is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF extension**
 2. `idf.customExtraPaths` is pre-appended to your system environment variable PATH within visual studio code **(not modifying your system environment)** before executing any of our extension commands such as openocd or cmake (build your current project) else extension commands will try to use what is already in your system PATH. In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip download and manually enter all required ESP-IDF Tools as explain in [ONBOARDING](./docs/ONBOARDING.md) which will be saved in `idf.customExtraPaths`.
 3. `idf.customExtraVars` stores any custom environment variable we use such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. We add these variables to visual studio code process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside visual studio code.**
 4. `idf.adapterTargetName` is used to select the chipset (esp32, esp32 s2, etc.) on which to run our extension commands.
@@ -139,7 +139,6 @@ These are project IDF Project specific settings
 | `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                         |
 | `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                       |
 | `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts  |
-| `idf.pythonSystemBinPath`  | System level Python binary path to append in PATH                   |
 | `idf.customExtraPaths`     | Paths to be appended to \$PATH                                      |
 | `idf.customExtraVars`      | Variables to be added to system environment variables               |
 | `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                           |

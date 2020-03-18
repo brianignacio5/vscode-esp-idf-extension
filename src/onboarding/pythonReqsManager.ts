@@ -27,12 +27,9 @@ import { PyReqLog } from "./PyReqLog";
 
 export async function checkPythonRequirements(
   workingDir: string,
-  selectedWorkspaceFolder: WorkspaceFolder
+  selectedWorkspaceFolder: WorkspaceFolder,
+  pythonBinPath: string
 ) {
-  const pythonBinPath = idfConf.readParameter(
-    "idf.pythonBinPath",
-    selectedWorkspaceFolder
-  ) as string;
   const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
   if (!canCheck) {
     OnBoardingPanel.postMessage({
@@ -73,7 +70,7 @@ export async function checkPythonRequirements(
 
       await utils
         .startPythonReqsProcess(pythonBin, espIdfPath, debugAdapterRequirements)
-        .then((adapterReqLog) => {
+        .then(async (adapterReqLog) => {
           const adapterResultLog = `Checking Debug Adapter requirements using ${pythonBin}\n${adapterReqLog}`;
           OutputChannel.appendLine(adapterResultLog);
           Logger.info(adapterResultLog);
@@ -86,6 +83,7 @@ export async function checkPythonRequirements(
             adapterReqLog.indexOf("are not satisfied") < 0
           ) {
             OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
+            await savePythonEnvInMetadataFile(pythonBinPath);
           }
         });
     })
@@ -108,13 +106,10 @@ export async function checkPythonRequirements(
 export async function installPythonRequirements(
   workingDir: string,
   confTarget: ConfigurationTarget,
-  selectedWorkspaceFolder: WorkspaceFolder
+  selectedWorkspaceFolder: WorkspaceFolder,
+  systemPythonPath: string
 ) {
-  const pythonBinPath = idfConf.readParameter(
-    "idf.pythonSystemBinPath",
-    selectedWorkspaceFolder
-  ) as string;
-  const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
+  const canCheck = await checkPythonPipExists(systemPythonPath, workingDir);
   if (!canCheck) {
     sendPyReqLog("Python or pip have not been found in your environment.");
     OutputChannel.appendLine(
@@ -136,7 +131,7 @@ export async function installPythonRequirements(
       espIdfPath,
       idfToolsPath,
       logTracker,
-      pythonBinPath,
+      systemPythonPath,
       OutputChannel.init()
     )
     .then(async (virtualEnvPythonBin) => {

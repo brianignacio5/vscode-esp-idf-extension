@@ -78,6 +78,7 @@ export class OnBoardingPanel {
     vscode.ConfigurationTarget.Global;
   private selectedWorkspaceFolder: vscode.WorkspaceFolder;
   private metadataJson: IMetadataFile;
+  private pythonSystemBinPath: string;
 
   private constructor(
     extensionPath: string,
@@ -86,6 +87,7 @@ export class OnBoardingPanel {
   ) {
     this.extensionPath = extensionPath;
     this.idfToolsManager = onboardingArgs.idfToolsManager;
+    this.pythonSystemBinPath = onboardingArgs.pythonVersions[0];
     const onBoardingPanelTitle = locDic.localize(
       "onboarding.panelName",
       "IDF Onboarding"
@@ -188,42 +190,49 @@ export class OnBoardingPanel {
           }
           break;
         case "checkIdfToolsForPaths":
-          this.idfToolsManager
-            .checkToolsVersion(message.custom_paths)
-            .then((dictTools) => {
-              const pkgsNotFound = dictTools.filter(
-                (p) => p.doesToolExist === false
-              );
-              if (pkgsNotFound.length === 0) {
+          if (
+            message.custom_paths &&
+            message.custom_vars &&
+            message.py_bin_path
+          ) {
+            this.idfToolsManager
+              .checkToolsVersion(message.custom_paths)
+              .then((dictTools) => {
+                const pkgsNotFound = dictTools.filter(
+                  (p) => p.doesToolExist === false
+                );
+                if (pkgsNotFound.length === 0) {
+                  this.panel.webview.postMessage({
+                    command: "set_tools_check_finish",
+                  });
+                  this.idfToolsManager.writeMetadataFromExtraPaths(
+                    message.custom_paths,
+                    message.custom_vars,
+                    dictTools
+                  );
+                }
                 this.panel.webview.postMessage({
-                  command: "set_tools_check_finish",
+                  command: "respond_check_idf_tools_path",
+                  dictToolsExist: dictTools,
                 });
-                this.idfToolsManager.writeMetadataFromExtraPaths(
-                  message.custom_paths,
-                  message.custom_vars,
-                  dictTools
+                const toolsNotFound = dictTools.filter(
+                  (val) => val.doesToolExist === false
                 );
-              }
-              this.panel.webview.postMessage({
-                command: "respond_check_idf_tools_path",
-                dictToolsExist: dictTools,
+                if (toolsNotFound.length === 0) {
+                  idfConf.writeParameter(
+                    "idf.customExtraPaths",
+                    message.custom_paths,
+                    this.confTarget,
+                    this.selectedWorkspaceFolder
+                  );
+                }
+                checkPythonRequirements(
+                  this.extensionPath,
+                  this.selectedWorkspaceFolder,
+                  message.py_bin_path
+                );
               });
-              const toolsNotFound = dictTools.filter(
-                (val) => val.doesToolExist === false
-              );
-              if (toolsNotFound.length === 0) {
-                idfConf.writeParameter(
-                  "idf.customExtraPaths",
-                  message.custom_paths,
-                  this.confTarget,
-                  this.selectedWorkspaceFolder
-                );
-              }
-              checkPythonRequirements(
-                this.extensionPath,
-                this.selectedWorkspaceFolder
-              );
-            });
+          }
           break;
         case "getRequiredToolsInfo":
           this.idfToolsManager.getRequiredToolsInfo().then((requiredTools) => {
@@ -273,7 +282,8 @@ export class OnBoardingPanel {
                   this.idfToolsManager,
                   message.new_value,
                   this.confTarget,
-                  this.selectedWorkspaceFolder
+                  this.selectedWorkspaceFolder,
+                  this.pythonSystemBinPath
                 ).catch((reason) => {
                   OutputChannel.appendLine(reason);
                   Logger.info(reason);
@@ -487,15 +497,10 @@ export class OnBoardingPanel {
           break;
         case "savePythonBinary":
           if (message.selectedPyBin) {
-            Logger.info(
-              `Saving ${message.selectedPyBin} as Python binary in idf.pythonBinPath`
-            );
-            idfConf.writeParameter(
-              "idf.pythonSystemBinPath",
-              message.selectedPyBin,
-              this.confTarget,
-              this.selectedWorkspaceFolder
-            );
+            const msg = `Saving ${message.selectedPyBin} to create python virtual environment.`;
+            Logger.info(msg);
+            OutputChannel.appendLine(msg);
+            this.pythonSystemBinPath = message.selectedPyBin;
           }
           break;
         case "saveShowOnboarding":
@@ -566,6 +571,13 @@ export class OnBoardingPanel {
     this.panel.webview.postMessage({
       command: "load_idf_download_path",
       idf_path: idfDownloadPath,
+    });
+
+    // Initial Python Path
+    const pyBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    this.panel.webview.postMessage({
+      command: "load_python_bin_path",
+      pythonBinPath: pyBinPath,
     });
 
     // Show onboarding on extension activate

@@ -64,6 +64,7 @@ export const actions: ActionTree<IState, any> = {
       command: "checkIdfToolsForPaths",
       custom_paths: context.state.customExtraPaths,
       custom_vars: context.state.envVars,
+      py_bin_path: context.state.pyBinPath,
     });
   },
   getExamplesList() {
