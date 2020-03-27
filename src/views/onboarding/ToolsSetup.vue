@@ -107,9 +107,14 @@
         <i class="arrow go-back right" v-on:click="reset"></i>
         <h4>Verify ESP-IDF Tools</h4>
         <div v-if="!isToolsCheckCompleted">
-          <p>Please check your python binary path (virtual environment or system wide)</p>
-          <input type="text" class="text-size" v-model="pyBinPath">
-          <p>Please specify the directories containing executable binaries for required ESP-IDF Tools: <br>
+          <p>
+            Please check your python binary path (virtual environment or system
+            wide)
+          </p>
+          <input type="text" class="text-size" v-model="pyBinPath" />
+          <p>
+            Please specify the directories containing executable binaries for
+            required ESP-IDF Tools: <br />
             <span class="bold"> |</span>
             <span
               v-for="toolVersion in requiredToolsVersions"

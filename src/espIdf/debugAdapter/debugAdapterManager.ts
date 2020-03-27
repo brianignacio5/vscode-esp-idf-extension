@@ -68,11 +68,11 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.isRunning()) {
         return;
       }
-      appendIdfAndToolsToPath();
+      const modifiedEnv = appendIdfAndToolsToPath();
       const workspace = vscode.workspace.workspaceFolders
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : "";
-      if (!isBinInPath("openocd", workspace)) {
+      if (!isBinInPath("openocd", workspace, modifiedEnv)) {
         throw new Error(
           "Invalid OpenOCD bin path or access is denied for the user"
         );

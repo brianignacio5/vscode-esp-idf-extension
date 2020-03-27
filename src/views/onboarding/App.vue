@@ -65,10 +65,10 @@
           <div
             v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0"
           >
-            <br>
+            <br />
             <router-link
               v-on:click.native="initSetup"
-              to='/previous'
+              to="/previous"
               class="enter-button"
             >
               Use previous settings
