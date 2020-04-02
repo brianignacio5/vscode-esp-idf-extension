@@ -62,9 +62,7 @@
             class="enter-button"
             >START</router-link
           >
-          <div
-            v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0"
-          >
+          <div v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0">
             <br />
             <router-link
               v-on:click.native="initSetup"
