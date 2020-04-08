@@ -145,6 +145,10 @@ export async function installPythonRequirements(
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {
           OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
+          OnBoardingPanel.postMessage({
+            command: "load_python_bin_path",
+            pythonBinPath: virtualEnvPythonBin,
+          });
           await savePythonEnvInMetadataFile(virtualEnvPythonBin);
         }
         return virtualEnvPythonBin;
