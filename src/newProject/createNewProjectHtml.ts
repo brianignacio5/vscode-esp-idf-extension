@@ -17,7 +17,7 @@ import * as vscode from "vscode";
 
 export function createNewProjectHtml(extensionPath: string): string {
   const vuePath = vscode.Uri.file(
-    path.join(extensionPath, "dist", "views", "new-project-bundle.js")
+    path.join(extensionPath, "dist", "views", "new_project-bundle.js")
   ).with({ scheme: "vscode-resource" });
 
   return `<!DOCTYPE html>

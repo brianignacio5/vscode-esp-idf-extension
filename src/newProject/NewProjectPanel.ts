@@ -15,9 +15,19 @@
 import { join } from "path";
 import * as vscode from "vscode";
 import { createNewProjectHtml } from "./createNewProjectHtml";
+import * as idfConf from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { getExamplesList } from "../examples/Examples";
+import {
+  IMetadataFile,
+  getToolsInMetadataForIdfPath,
+  IPath,
+  ITool,
+} from "../ITool";
+import * as utils from "../utils";
+import { Logger } from "../logger/logger";
+import { OutputChannel } from "../logger/outputChannel";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
 
@@ -26,7 +36,7 @@ export class NewProjectPanel {
 
   public static createOrShow(
     extensionPath: string,
-    newProjectArgs: INewProjectArgs
+    newProjectArgs?: INewProjectArgs
   ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -42,14 +52,23 @@ export class NewProjectPanel {
     }
   }
 
+  public static isCreatedAndHidden(): boolean {
+    return (
+      NewProjectPanel.currentPanel &&
+      !NewProjectPanel.currentPanel.panel.visible
+    );
+  }
+
   private static readonly viewType = "newProjectWizard";
   private readonly panel: vscode.WebviewPanel;
+  private extensionPath: string;
 
   private constructor(
     extensionPath: string,
     newProjectArgs: INewProjectArgs,
     column: vscode.ViewColumn
   ) {
+    this.extensionPath = extensionPath;
     const newProjectTitle = locDictionary.localize(
       "newProject.panelName",
       "New Project Wizard"
@@ -80,11 +99,10 @@ export class NewProjectPanel {
             });
           }
           break;
-        case "requestInitialValues":
-          this.panel.webview.postMessage({
-            command: "load_metadata",
-            metadata: newProjectArgs.metadata,
-          });
+        case "checkIsValid":
+          if (message.idf && message.tools && message.venv) {
+            this.checkSettings(message.idf, message.tools, message.venv);
+          }
           break;
         case "loadExamples":
           if (message.idf_path) {
@@ -110,6 +128,10 @@ export class NewProjectPanel {
                 });
               }
             });
+          break;
+        case "requestInitValues":
+          this.loadInitialMetadata(newProjectArgs.metadata);
+          break;
         default:
           break;
       }
@@ -119,5 +141,81 @@ export class NewProjectPanel {
   public dispose() {
     NewProjectPanel.currentPanel = undefined;
     this.panel.dispose();
+  }
+
+  public async loadInitialMetadata(metadata: IMetadataFile) {
+    const espIdfPath = idfConf.readParameter("idf.espIdfPath");
+    const selectedIdf =
+      metadata.idf.find((idfVersion) => idfVersion.path === espIdfPath) ||
+      metadata.idf[0];
+    this.panel.webview.postMessage({
+      command: "load_idf_versions",
+      idfVersions: metadata.idf,
+      selectedIdf,
+    });
+    const idfVersion = await utils.getEspIdfVersion(selectedIdf.path);
+    const pyVenvList = metadata.venv.filter(
+      (venv) => venv.path.indexOf(idfVersion) > -1
+    );
+    const pyBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const selectedVenv =
+      pyVenvList.find((venv) => venv.path === pyBinPath) || pyVenvList[0];
+    this.panel.webview.postMessage({
+      command: "load_py_venvs",
+      pyVenvList,
+      selectedVenv,
+    });
+    const toolsList = await getToolsInMetadataForIdfPath(
+      selectedIdf.path,
+      metadata.tools
+    );
+    this.panel.webview.postMessage({
+      command: "load_tools_list",
+      tools: toolsList,
+    });
+  }
+
+  public async checkSettings(idf: IPath, tools: ITool[], venv: IPath) {
+    const toolsResult = await utils.validateToolsFromMetadata(idf.path, tools);
+    const idfPyReqs = join(idf.path, "requirements.txt");
+    const debugAdapterPyReqs = join(
+      this.extensionPath,
+      "esp_debug_adapter",
+      "requirements.txt"
+    );
+    let allIsValid: boolean = true;
+    for (const tKey of Object.keys(toolsResult)) {
+      if (!toolsResult[tKey]) {
+        allIsValid = false;
+        Logger.infoNotify(`Bin path is not valid for ${tKey}`);
+        OutputChannel.appendLine(`Bin path is not valid for ${tKey}`);
+      }
+    }
+    const idfPyLog = await utils.startPythonReqsProcess(
+      venv.path,
+      idf.path,
+      idfPyReqs
+    );
+    const resultLog = `Checking Python requirements using ${venv.path}\n${idfPyLog}`;
+    OutputChannel.appendLine(resultLog);
+    Logger.info(resultLog);
+    const debugPyLog = await utils.startPythonReqsProcess(
+      venv.path,
+      idf.path,
+      debugAdapterPyReqs
+    );
+    const adapterResultLog = `Checking Debug Adapter requirements using ${venv.path}\n${debugPyLog}`;
+    OutputChannel.appendLine(adapterResultLog);
+    Logger.info(adapterResultLog);
+    if (
+      idfPyLog.indexOf("are not satisfied") > -1 &&
+      debugPyLog.indexOf("are not satisfied") > -1
+    ) {
+      allIsValid = false;
+    }
+    this.panel.webview.postMessage({
+      command: "idf_tools_check_done",
+      allIsValid,
+    });
   }
 }

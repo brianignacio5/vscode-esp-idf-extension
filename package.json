@@ -50,6 +50,7 @@
     "onCommand:espIdf.apptrace.customize",
     "onCommand:espIdf.getExtensionPath",
     "onCommand:espIdf.getOpenOcdConfigs",
+    "onCommand:newProject.start",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onView:idfAppTracer",
@@ -340,6 +341,10 @@
       {
         "command": "menuconfig.start",
         "title": "%menuconfig.start.title%"
+      },
+      {
+        "command": "newProject.start",
+        "title": "%newProject.start.title%"
       },
       {
         "command": "onboarding.start",
