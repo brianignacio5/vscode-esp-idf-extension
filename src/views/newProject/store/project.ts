@@ -17,15 +17,18 @@ import { ActionTree, MutationTree, StoreOptions } from "vuex";
 import { IPath, ITool } from "../../../ITool";
 import { IExample } from "../../../examples/Examples";
 import { State } from "vuex-class";
+import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
 
 export interface State {
+  components: IComponent[];
+  currentComponentPath: string;
   idfVersions: IPath[];
   isValid: boolean;
   pyVenvList: IPath[];
   selectedIdfVersion: IPath;
   selectedVenv: IPath;
-  storeSelectedTemplateCategory: string;
-  storeSelectedTemplate: IExample;
+  selectedTemplateCategory: string;
+  selectedTemplate: IExample;
   templates: IExample[];
   toolsInMetadata: ITool[];
 }
@@ -39,18 +42,30 @@ try {
 }
 
 export const projectState: State = {
+  components: [],
+  currentComponentPath: "",
   idfVersions: [],
   isValid: false,
   pyVenvList: [],
   selectedVenv: { id: "", path: "" },
   selectedIdfVersion: { id: "", path: "" },
-  storeSelectedTemplate: { name: "", category: "", path: "" },
-  storeSelectedTemplateCategory: "",
-  templates: [],
+  selectedTemplate: { name: "", category: "", path: "" },
+  selectedTemplateCategory: "",
+  templates: [{ name: "", category: "", path: "" }],
   toolsInMetadata: [],
 };
 
 export const actions: ActionTree<State, any> = {
+  createProject(context) {
+    vscode.postMessage({
+      command: "createProject",
+      components: context.state.components,
+      idf: context.state.selectedIdfVersion,
+      template: context.state.selectedTemplate,
+      tools: context.state.toolsInMetadata,
+      venv: context.state.selectedVenv,
+    });
+  },
   checkIsValid(context) {
     vscode.postMessage({
       command: "checkIsValid",
@@ -65,6 +80,11 @@ export const actions: ActionTree<State, any> = {
       idf_path: context.state.selectedIdfVersion.path,
     });
   },
+  openComponentFolder() {
+    vscode.postMessage({
+      command: "loadComponent",
+    });
+  },
   requestInitValues() {
     vscode.postMessage({
       command: "requestInitValues",
@@ -73,6 +93,16 @@ export const actions: ActionTree<State, any> = {
 };
 
 export const mutations: MutationTree<State> = {
+  addComponent(state, newComponent) {
+    const newState = state;
+    newState.components.push(newComponent);
+    state = { ...newState };
+  },
+  setCurrentComponentPath(state, currentComponentPath) {
+    const newState = state;
+    newState.currentComponentPath = currentComponentPath;
+    state = { ...newState };
+  },
   setIsValid(state, isValid) {
     const newState = state;
     newState.isValid = isValid;
@@ -101,23 +131,29 @@ export const mutations: MutationTree<State> = {
   setTemplates(state, examples: IExample[]) {
     const newState = state;
     newState.templates = examples;
-    newState.storeSelectedTemplateCategory = examples[0].category;
-    newState.storeSelectedTemplate = examples[0];
+    newState.selectedTemplateCategory = examples[0].category;
+    newState.selectedTemplate = examples[0];
     state = { ...newState };
   },
   setSelectedCategory(state, category: string) {
     const newState = state;
-    newState.storeSelectedTemplateCategory = category;
+    newState.selectedTemplateCategory = category;
     state = { ...newState };
   },
   setSelectedTemplate(state, template: IExample) {
     const newState = state;
-    newState.storeSelectedTemplate = template;
+    newState.selectedTemplate = template;
     state = { ...newState };
   },
   setToolsList(state, toolList: ITool[]) {
     const newState = state;
     newState.toolsInMetadata = toolList;
+    state = { ...newState };
+  },
+  removeComponent(state, component: IComponent) {
+    const newState = state;
+    const index = newState.components.indexOf(component);
+    newState.components.splice(index, 1);
     state = { ...newState };
   },
 };

@@ -1,5 +1,5 @@
 <template>
-  <div id="select-idf">
+  <div id="espidf">
     <div v-if="idfVersions && idfVersions.length > 0">
       <label for="idf-version">Select ESP-IDF version:</label>
       <br />
@@ -28,7 +28,7 @@
       <tool v-for="tool in toolsInMetadata" :tool.sync="tool" :key="tool.id" />
       <br />
       <br />
-      <router-link to="/template" class="button" v-if="isValid"
+      <router-link to="/examples" class="button" v-if="isValid"
         >Choose template</router-link
       >
       <button v-else v-on:click="checkToolsAreValid" class="button">
@@ -41,11 +41,11 @@
 <script lang="ts">
 import Vue from "vue";
 import { Component } from "vue-property-decorator";
-import { State, Action } from "vuex-class";
+import { State, Action, Mutation } from "vuex-class";
 import { IMetadataFile, IPath, ITool } from "../../ITool";
 
 @Component
-export default class EspIdf extends Vue {
+export default class Espidf extends Vue {
   @State("idfVersions") private storeIdfVersions: IPath[];
   @State("isValid") private storeIsValid: boolean;
   @State("pyVenvList") private storePyVenvList: IPath[];
@@ -76,6 +76,7 @@ export default class EspIdf extends Vue {
   get toolsInMetadata() {
     return this.storeToolsInMetadata;
   }
+
   private mounted() {
     this.requestInitValues();
   }

@@ -140,7 +140,7 @@ export async function installPythonRequirements(
           "idf.pythonBinPath",
           virtualEnvPythonBin,
           confTarget,
-          selectedWorkspaceFolder
+          selectedWorkspaceFolder.uri
         );
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {

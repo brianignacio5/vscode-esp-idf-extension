@@ -78,11 +78,11 @@ const webViewConfig = {
       "menuconfig",
       "main.ts"
     ),
-    new_project: path.resolve(
+    newproject: path.resolve(
       __dirname,
       "src",
       "views",
-      "newProject",
+      "newproject",
       "main.ts"
     ),
   },

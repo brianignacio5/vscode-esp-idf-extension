@@ -109,7 +109,7 @@ export async function downloadInstallIdfVersion(
         "idf.espIdfPath",
         expectedDirectory,
         confTarget,
-        selectedWorkspaceFolder
+        selectedWorkspaceFolder.uri
       );
     } else {
       await downloadManager.downloadWithRetries(
@@ -149,7 +149,7 @@ export async function downloadInstallIdfVersion(
         "idf.espIdfPath",
         expectedDirectory,
         confTarget,
-        selectedWorkspaceFolder
+        selectedWorkspaceFolder.uri
       );
       await saveIdfPathInMetadataFile(expectedDirectory);
     }

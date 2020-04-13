@@ -96,13 +96,13 @@ export async function writeParameter(
   param: string,
   newValue,
   target: vscode.ConfigurationTarget,
-  wsFolder: vscode.WorkspaceFolder = undefined
+  wsFolder: vscode.Uri = undefined
 ) {
   const paramValue = addWinIfRequired(param);
   if (target === vscode.ConfigurationTarget.WorkspaceFolder) {
     if (wsFolder) {
       return await vscode.workspace
-        .getConfiguration("", wsFolder.uri)
+        .getConfiguration("", wsFolder)
         .update(paramValue, newValue, target);
     } else {
       return vscode.window

@@ -17,32 +17,43 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import VueRouter from "vue-router";
 import App from "./App.vue";
-import EspIdf from "./EspIdf.vue";
+import Components from "./Components.vue";
+import Espidf from "./Espidf.vue";
+import Examples from "./Examples.vue";
+import IdfComponent from "./components/idfComponent.vue";
 import Tool from "./components/tool.vue";
-import Templates from "./Templates.vue";
 import { store } from "./store";
 import {
   faArrowLeft,
   faCheck,
   faFolder,
   faFolderOpen,
+  faPlusSquare,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 
+Vue.use(VueRouter);
 const routes = [
-  { path: "/template", component: Templates },
-  { path: "/", component: EspIdf },
+  { path: "/", component: Espidf },
+  { path: "/examples", component: Examples },
+  { path: "/components", component: Components },
 ];
 
-Vue.use(VueRouter);
-
-const router = new VueRouter({
-  routes,
+export const router = new VueRouter({
   base: __dirname,
+  routes,
 });
 
-library.add(faArrowLeft, faCheck, faFolder, faFolderOpen, faTimes);
+library.add(
+  faArrowLeft,
+  faCheck,
+  faFolder,
+  faFolderOpen,
+  faPlusSquare,
+  faTimes
+);
 Vue.component("font-awesome-icon", FontAwesomeIcon);
+Vue.component("idfComponent", IdfComponent);
 Vue.component("tool", Tool);
 
 new Vue({
@@ -56,6 +67,11 @@ new Vue({
 window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
+    case "component_list_add_path":
+      if (message.new_component) {
+        store.commit("addComponent", message.new_component);
+      }
+      break;
     case "idf_tools_check_done":
       if (message.allIsValid) {
         store.commit("setIsValid", message.allIsValid);

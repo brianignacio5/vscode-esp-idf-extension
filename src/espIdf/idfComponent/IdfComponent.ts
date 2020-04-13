@@ -12,21 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Progress } from "vscode";
-import { IMetadataFile } from "../ITool";
-import * as utils from "../utils";
-import { IdfComponent } from "../idfComponent";
-
-export interface INewProjectArgs {
-  metadata: IMetadataFile;
-  components: IdfComponent[];
-}
-
-export async function getNewProjectArgs(
-  progress: Progress<{ message: string; increment: number }>
-) {
-  progress.report({ increment: 10, message: "Loading settings..." });
-  const metadata = await utils.loadMetadata();
-  progress.report({ increment: 80, message: "Initializing wizard..." });
-  return { metadata } as INewProjectArgs;
+export interface IComponent {
+  path: string;
+  name: string;
 }

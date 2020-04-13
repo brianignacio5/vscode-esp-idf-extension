@@ -1,16 +1,15 @@
 <template>
-  <div id="app">
+  <div id="init">
     <transition name="fade" mode="out-in">
-      <router-view></router-view>
+      <router-view />
     </transition>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { Action } from "vuex-class";
+import { Action, State } from "vuex-class";
 
-@Component
 export default class App extends Vue {
   @Action private requestInitValues;
   private mounted() {
@@ -20,7 +19,7 @@ export default class App extends Vue {
 </script>
 
 <style>
-#app {
+#init {
   max-width: 900px;
   margin: 1% auto 1% auto;
   padding-top: 3%;
@@ -82,6 +81,7 @@ export default class App extends Vue {
   border: none;
   cursor: pointer;
   padding: 1%;
+  margin: 1vh;
 }
 
 .button:hover {
