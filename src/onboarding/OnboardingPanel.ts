@@ -183,7 +183,7 @@ export class OnBoardingPanel {
               "idf.espIdfPath",
               message.new_value,
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             this.updateIdfToolsManager(message.new_value);
             saveIdfPathInMetadataFile(message.new_value).then(async () => {
@@ -231,7 +231,7 @@ export class OnBoardingPanel {
                     "idf.customExtraPaths",
                     message.custom_paths,
                     this.confTarget,
-                    this.selectedWorkspaceFolder.uri
+                    this.selectedWorkspaceFolder
                   );
                 }
                 checkPythonRequirements(
@@ -266,7 +266,7 @@ export class OnBoardingPanel {
                     "idf.toolsPath",
                     message.new_value,
                     this.confTarget,
-                    this.selectedWorkspaceFolder.uri
+                    this.selectedWorkspaceFolder
                   );
                 } else {
                   const selected = await vscode.window.showErrorMessage(
@@ -281,7 +281,7 @@ export class OnBoardingPanel {
                         "idf.toolsPath",
                         message.new_value,
                         this.confTarget,
-                        this.selectedWorkspaceFolder.uri
+                        this.selectedWorkspaceFolder
                       );
                     });
                   } else {
@@ -408,31 +408,31 @@ export class OnBoardingPanel {
               "idf.toolsPath",
               toolsDir,
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             idfConf.writeParameter(
               "idf.espIdfPath",
               message.idf.path,
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             idfConf.writeParameter(
               "idf.customExtraPaths",
               extraPaths,
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             idfConf.writeParameter(
               "idf.customExtraVars",
               JSON.stringify(extraVars),
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             idfConf.writeParameter(
               "idf.pythonBinPath",
               message.venv.path,
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             Logger.infoNotify(`Selected configuration has been saved.`);
           }
@@ -453,13 +453,13 @@ export class OnBoardingPanel {
               "idf.customExtraPaths",
               message.custom_paths,
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
             idfConf.writeParameter(
               "idf.customExtraVars",
               JSON.stringify(message.custom_vars),
               this.confTarget,
-              this.selectedWorkspaceFolder.uri
+              this.selectedWorkspaceFolder
             );
           }
           break;

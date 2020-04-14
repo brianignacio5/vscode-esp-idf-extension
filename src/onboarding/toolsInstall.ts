@@ -138,13 +138,13 @@ export async function downloadToolsInIdfToolsPath(
         "idf.customExtraPaths",
         exportPaths,
         confTarget,
-        selectedWorkspaceFolder.uri
+        selectedWorkspaceFolder
       );
       await idfConf.writeParameter(
         "idf.customExtraVars",
         exportVars,
         confTarget,
-        selectedWorkspaceFolder.uri
+        selectedWorkspaceFolder
       );
       OnBoardingPanel.postMessage({
         command: "load_custom_paths",

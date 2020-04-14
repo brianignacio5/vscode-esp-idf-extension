@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir } from "fs-extra";
-import { delimiter, join } from "path";
+import { ensureDir, copy } from "fs-extra";
+import { basename, delimiter, join } from "path";
 import * as vscode from "vscode";
 import { createNewProjectHtml } from "./createNewProjectHtml";
 import * as idfConf from "../idfConfiguration";
@@ -134,7 +134,7 @@ export class NewProjectPanel {
             .then((selectedFolder) => {
               if (selectedFolder) {
                 const newComponent: IComponent = {
-                  name: selectedFolder[0].fsPath,
+                  name: basename(selectedFolder[0].fsPath),
                   path: selectedFolder[0].fsPath,
                 };
                 this.panel.webview.postMessage({
@@ -245,6 +245,7 @@ export class NewProjectPanel {
       canSelectFolders: true,
       canSelectFiles: false,
       canSelectMany: false,
+      openLabel: "Choose container directory",
     });
     if (!selectedFolder) {
       vscode.window.showInformationMessage("No folder selected");
@@ -259,18 +260,20 @@ export class NewProjectPanel {
     }
     const newProjectPath = join(selectedFolder[0].fsPath, projectName);
     await ensureDir(newProjectPath, { mode: 0o775 });
-    await idfConf.writeParameter(
-      "idf.espIdfPath",
-      idf.path,
-      vscode.ConfigurationTarget.WorkspaceFolder,
-      vscode.Uri.file(newProjectPath)
-    );
-    await idfConf.writeParameter(
-      "idf.pythonBinPath",
-      venv.path,
-      vscode.ConfigurationTarget.WorkspaceFolder,
-      vscode.Uri.file(newProjectPath)
-    );
+    if (template && template.path !== "") {
+      await utils.copyFromSrcProject(template.path, newProjectPath);
+    } else {
+      const boilerplatePath = join(
+        this.extensionPath,
+        "templates",
+        "boilerplate"
+      );
+      await utils.copyFromSrcProject(boilerplatePath, newProjectPath);
+    }
+    const settingsJsonPath = join(newProjectPath, ".vscode", "settings.json");
+    const settingsJson = await utils.readJson(settingsJsonPath);
+    settingsJson["idf.espIdfPath"] = idf.path;
+    settingsJson["idf.pythonBinPath"] = venv.path;
     const extraPaths = tools
       .reduce((prev, curr) => {
         return `${prev}${delimiter}${curr.path}`;
@@ -282,27 +285,26 @@ export class NewProjectPanel {
         extraVars[envVar] = tool.env[envVar];
       });
     }
-    await idfConf.writeParameter(
-      "idf.customExtraPaths",
-      extraPaths,
-      vscode.ConfigurationTarget.WorkspaceFolder,
-      vscode.Uri.file(newProjectPath)
-    );
-    await idfConf.writeParameter(
-      "idf.customExtraVars",
-      JSON.stringify(extraVars),
-      vscode.ConfigurationTarget.WorkspaceFolder,
-      vscode.Uri.file(newProjectPath)
-    );
     const toolsDir = venv.path.substr(0, venv.path.indexOf("python_env") - 1);
-    await idfConf.writeParameter(
-      "idf.toolsPath",
-      toolsDir,
-      vscode.ConfigurationTarget.WorkspaceFolder,
+    settingsJson["idf.customExtraPaths"] = extraPaths;
+    settingsJson["idf.customExtraVars"] = JSON.stringify(extraVars);
+    settingsJson["idf.toolsPath"] = toolsDir;
+
+    await utils.writeJson(settingsJsonPath, settingsJson);
+
+    if (components && components.length > 0) {
+      const componentsPath = join(newProjectPath, "components");
+      await ensureDir(componentsPath, { mode: 0o775 });
+      for (const comp of components) {
+        const compPath = join(componentsPath, comp.name);
+        await ensureDir(compPath, { mode: 0o775 });
+        await copy(comp.path, compPath);
+      }
+    }
+
+    vscode.commands.executeCommand(
+      "vscode.openFolder",
       vscode.Uri.file(newProjectPath)
     );
-    if (template.path != "") {
-      utils.copyFromSrcProject(template.path, newProjectPath);
-    }
   }
 }

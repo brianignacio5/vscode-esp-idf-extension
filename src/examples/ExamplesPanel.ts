@@ -83,8 +83,8 @@ export class ExamplesPlanel {
                     selectedFolder[0].fsPath,
                     message.name
                   );
-                  ensureDir(resultFolder).then(() => {
-                    utils.copyFromSrcProject(
+                  ensureDir(resultFolder).then(async () => {
+                    await utils.copyFromSrcProject(
                       message.project_path,
                       resultFolder
                     );

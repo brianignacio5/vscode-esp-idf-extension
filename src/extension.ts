@@ -238,9 +238,9 @@ export async function activate(context: vscode.ExtensionContext) {
       utils.chooseTemplateDir(),
       { placeHolder: "Select a template to use" }
     );
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       if (option) {
-        utils.createSkeleton(workspaceRoot.fsPath, option.target);
+        await utils.createSkeleton(workspaceRoot.fsPath, option.target);
         const defaultFoldersMsg = locDic.localize(
           "extension.defaultFoldersGeneratedMessage",
           "Default folders were generated."
@@ -543,8 +543,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      utils.createVscodeFolder(workspaceRoot.fsPath);
+    PreCheck.perform([openFolderCheck], async () => {
+      await utils.createVscodeFolder(workspaceRoot.fsPath);
       Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
     });
   });
