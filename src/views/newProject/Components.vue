@@ -16,6 +16,7 @@
       @mouseout="folderIcon = 'folder'"
       @click="openComponentFolder"
     />
+    <br />
     <idfComponent
       v-for="idfComp in components"
       :comp.sync="idfComp"
